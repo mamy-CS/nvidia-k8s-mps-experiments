@@ -1,0 +1,35 @@
+# ./gpu burn -m 70% 120 - 12 replicas 
+# export CUDA_MPS_PINNED_DEVICE_MEM_LIMIT=''0=6GB'' && \ - - 17 replicas
+# export CUDA_MPS_PINNED_DEVICE_MEM_LIMIT=''GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24=5GB,GPU-8d042338-e67f-9c48-92b4-5b55c7e5133c=10GB'' && \
+# export CUDA_VISIBLE_DEVICES=GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24 && \
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mps-deployment-gpuburn
+  labels:
+    app: mps-deployment-gpuburn
+spec:
+  replicas: 9
+  selector:
+    matchLabels:
+      app: mps-deployment-gpuburn
+  template:
+    metadata:
+      labels:
+        app: mps-deployment-gpuburn
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      hostPID: true
+      containers:
+        - name: gpu-burn
+          image: quay.io/mmunirab/gpu-burn:cuda12.2-built
+          command: ["/bin/bash", "-c", "--"]
+          args:
+            - |
+              ./gpu_burn 120
+          resources:
+           limits:
+             nvidia.com/gpu.shared: 1
