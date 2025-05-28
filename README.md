@@ -10,7 +10,7 @@ This document outlines the feasibility, support, and risks of using [NVIDIA MPS 
 bash ./setup.sh
 ```
 
-After successful installation and readiness:
+After successful installation and readiness of the GPU operator pods:
 
 ```console
 NAME                                                         READY   STATUS      RESTARTS   AGE
@@ -23,9 +23,9 @@ nvidia-container-toolkit-daemonset-v5hqb                     1/1     Running    
 nvidia-cuda-validator-kkvs2                                  0/1     Completed   0          34s
 nvidia-dcgm-exporter-6zk88                                   1/1     Running     0          2m9s
 nvidia-device-plugin-daemonset-t8bw6                         1/1     Running     0          2m10s
-nvidia-operator-validator-k9hh9                              0/1     Init:3/4    0          2m11sbash ./install-nfd-operator.sh
+nvidia-operator-validator-k9hh9                              0/1     Init:3/4    0          2m11s
 ```
-2. Configure containerd (for Kubernetes):
+2. Configure containerd (for Kubernetes) [if not configured]:
 Configure the container runtime by using the nvidia-ctk command:
 
 ```console
