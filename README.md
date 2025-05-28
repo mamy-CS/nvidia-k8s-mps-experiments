@@ -41,6 +41,18 @@ Configure the container runtime by using the nvidia-ctk command:
 ```console
 kubectl create -n gpu-operator -f mps-config.yaml
 ```
+
+Sample configuration: 
+```console
+version: v1
+sharing:
+  mps:
+    renameByDefault: true
+    resources:
+    - name: nvidia.com/gpu
+      replicas: 4
+    ...
+```
 Patch the cluster policies:
 
 ```console
@@ -70,5 +82,21 @@ nvidia-device-plugin-mps-control-daemon-fjhq8                2/2     Running    
 nvidia-operator-validator-k9hh9                              1/1     Running     0          25h
 ```
 
+4. Check the node Capacity and Allocatable for GPU resources update:
+Since renameByDefault=true, the resource will be advertised under the name <resource-name>.shared instead of simply <resource-name>.
 
+```console
+kubectl describe node kind-control-plane
+```
+
+In this case, this configuration was applied to a node with 2 GPUs, and the plugin advertises 8 nvidia.com/gpu.shared resources to Kubernetes instead of 2. And nvidia.com will show 0 to avoid confusion. 
+
+```console
+Capacity:
+  nvidia.com/gpu:         0
+  nvidia.com/gpu.shared:  8
+Allocatable:
+  nvidia.com/gpu:         0
+  nvidia.com/gpu.shared:  8
+```
 
