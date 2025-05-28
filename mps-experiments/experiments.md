@@ -1,10 +1,29 @@
 # MPS experiments on Kubernetes(Kind) cluster
 Running deployments using [GPU Burn](https://github.com/wilicc/gpu-burn) on various experiments
 
-1. Show normal gpu burn run - 9 replicas - only deploys 8 pods with 10GB usage:
+1. Normal GPU Burn Run - 9 Replicas, 10GB Usage Each
 
+### Observation:
+- Only 8 pods deployed
+- ~10GB GPU memory usage per process
+
+The 30 MiB used by nvidia-cuda-mps-server reflects the baseline memory overhead for:
+* Loading CUDA driver components
+* Allocating shared memory structures for MPS control
+* Maintaining channels (e.g., control socket)
+* Holding persistent state like scheduling queues and request buffers
+This memory usage is independent of any client workload, and is typically small (20–50 MiB)
+There is only one Global MPS Daemon (nvidia-cuda-mps-server):
+    * The MPS control daemon manages all available GPUs.
+    * There is no separate MPS server per GPU.
+    * On the nvidia-smi commands below, you see the same nvidia-cuda-mps-server PID listed across both GPUs; it just means it opens contexts on each GPU as needed.
+ 
 ```console
 kubectl apply -f mps-custom-deployment-gpuburn.yaml
+```
+
+```console
+nvidia-smi
 ```
 
 ```console
@@ -43,8 +62,12 @@ kubectl apply -f mps-custom-deployment-gpuburn.yaml
 
 ```
 
-2. Show with ./gpu burn -m 70% 120 - 12 replicas - only deploys 8 pods with 7GB usage
+2. GPU Burn with Memory Flag: -m 70% (12 Replicas)
 
+### Observation:
+- Only 8 pods were successfully deployed
+- ~7GB GPU memory usage per process
+  
 ```console
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
@@ -80,8 +103,11 @@ kubectl apply -f mps-custom-deployment-gpuburn.yaml
 +-----------------------------------------------------------------------------------------+
 ```
 
-3. Show with CUDA_MPS_PINNED_DEVICE_MEM_LIMIT=''0=6GB'' - 17 replicas - only deploys 8 pods with 6GB usage and both gpus are limited at 6GB
-
+3. CUDA_MPS_PINNED_DEVICE_MEM_LIMIT='0=6GB' (17 Replicas)
+### Observation:
+- 8 pods deployed
+- Memory limit respected, 6GB per workload but applied on both GPUs instead of just gpu 0
+  
 ```console
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
@@ -117,10 +143,16 @@ kubectl apply -f mps-custom-deployment-gpuburn.yaml
 +-----------------------------------------------------------------------------------------+
 ```
 
-4. Show with CUDA_MPS_PINNED_DEVICE_MEM_LIMIT=''GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24=5GB,GPU-8d042338-e67f-9c48-92b4-5b55c7e5133c=10GB'' - 20 replicas
-The memory limit set for both GPUs is bypassed, and GPUs are maxed out.
+4. GPU-specific Memory Limits (20 replicas)
+### ENV:
+```console
+CUDA_MPS_PINNED_DEVICE_MEM_LIMIT=''GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24=5GB,GPU-8d042338-e67f-9c48-92b4-5b55c7e5133c=10GB''
+```
+### Observation:
+- Limits not respected (The memory limit set for both GPUs is bypassed)
+- Memory usage maxed out
 
-Errors seen in the pods:
+### Errors seen in the pods:
 Couldn't init a GPU test: Error (gpu_burn-drv.cpp:113): MPS server is not ready to accept new MPS client requests
 Couldn't init CUDA: Error (gpu_burn-drv.cpp:304): MPS server is not ready to accept new MPS client requests
 No CUDA devices
@@ -159,10 +191,12 @@ gpu-burn Couldn't init a GPU test: Error (gpu_burn-drv.cpp:113): unspecified lau
 +-----------------------------------------------------------------------------------------+
 ```
 
-5. Show with CUDA_VISIBLE_DEVICES=GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24 - chooses only gpu 0 
-4 workloads are run only on gpu 0 at 10GB each
+5. Set CUDA_VISIBLE_DEVICES=GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24 - chooses only gpu 0
+### Observation:
+- 4 workloads are run only on gpu 0 at 10GB each
+- GPU 1 remains idle
 
-Errors seen in the pods:
+### Errors seen in the pods:
 terminate called after throwing an instance of 'std::__cxx11::basic_string<char, std::char_traits<char>, std::allocator<char> >'
 No clients are alive!  Aborting
 Couldn't init a GPU test: Error (gpu_burn-drv.cpp:113): unspecified launch failure
@@ -199,3 +233,10 @@ Couldn't init a GPU test: Error (gpu_burn-drv.cpp:112): initialization error
 |    1   N/A  N/A    948322      C   nvidia-cuda-mps-server                         30MiB |
 +-----------------------------------------------------------------------------------------+
 ```
+
+## Summary
+
+- MPS limits are mostly respected when defined simply (e.g. 0=6GB).
+- Complex syntax with UUIDs seems unreliable.
+- Workload rejection/errors occur when attempting to overcommit memory.
+- CUDA_VISIBLE_DEVICES helps to bind workloads, but may require careful tuning.
