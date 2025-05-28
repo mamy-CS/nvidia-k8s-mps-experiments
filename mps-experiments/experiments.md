@@ -191,7 +191,11 @@ gpu-burn Couldn't init a GPU test: Error (gpu_burn-drv.cpp:113): unspecified lau
 +-----------------------------------------------------------------------------------------+
 ```
 
-5. Set CUDA_VISIBLE_DEVICES=GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24 - chooses only gpu 0
+5. Specify which GPU’s should be visible to the CUDA application [GPU 0]
+### ENV:
+```console
+CUDA_VISIBLE_DEVICES=GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24
+```
 ### Observation:
 - 4 workloads are run only on gpu 0 at 10GB each
 - GPU 1 remains idle
