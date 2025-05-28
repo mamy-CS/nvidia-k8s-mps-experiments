@@ -1,0 +1,37 @@
+# Using CUDA_MPS_PINNED_DEVICE_MEM_LIMIT=''0=6GB'' - 17 replicas - only deploys 8 pods with 6GB usage
+# Memory limit for gpu 0 at 6GB but both GPUs are capped at 6GB
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mps-deployment-gpuburn
+  labels:
+    app: mps-deployment-gpuburn
+spec:
+  replicas: 17
+  selector:
+    matchLabels:
+      app: mps-deployment-gpuburn
+  template:
+    metadata:
+      labels:
+        app: mps-deployment-gpuburn
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      hostPID: true
+      containers:
+        - name: gpu-burn
+          image: nvidia/cuda:12.2.0-devel-ubuntu22.04
+          command: ["/bin/bash", "-c", "--"]
+          args:
+            - |
+              apt update && apt install -y build-essential git && \
+              git clone https://github.com/wilicc/gpu-burn.git && \
+              cd gpu-burn && make && \
+              export CUDA_MPS_PINNED_DEVICE_MEM_LIMIT=''0=6GB'' && \
+              ./gpu_burn 120
+          resources:
+           limits:
+             nvidia.com/gpu.shared: 1
