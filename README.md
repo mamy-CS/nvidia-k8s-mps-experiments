@@ -1,13 +1,13 @@
 # NVIDIA MPS in Kubernetes KIND cluster with the NVIDIA GPU Operator using the [NVIDIA device plugin for Kubernetes](https://github.com/NVIDIA/k8s-device-plugin/tree/v0.15.0)
 
-This document outlines the feasibility, support, and risks of using [NVIDIA MPS (Multi-Process Service)](https://docs.nvidia.com/deploy/mps/)  on a Kubernetes (KIND) cluster. 
+This document outlines the feasibility, support, and risks of using [NVIDIA MPS (Multi-Process Service)](https://docs.nvidia.com/deploy/mps/)  on a Kubernetes (Kind) cluster. 
 
 ## Configure cluster for MPS
 
 1. Create Kind cluster and install the NVIDIA GPU Operator:
 
 ```console
-bash ./install-nfd-operator.sh
+bash ./setup.sh
 ```
 
 After successful installation and readiness:
