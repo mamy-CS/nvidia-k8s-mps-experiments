@@ -1,0 +1,35 @@
+# Using ./gpu burn -m 70% 120 - 12 replicas - only deploys 8 pods with 7GB usage
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mps-deployment-gpuburn
+  labels:
+    app: mps-deployment-gpuburn
+spec:
+  replicas: 12
+  selector:
+    matchLabels:
+      app: mps-deployment-gpuburn
+  template:
+    metadata:
+      labels:
+        app: mps-deployment-gpuburn
+    spec:
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+      hostPID: true
+      containers:
+        - name: gpu-burn
+          image: nvidia/cuda:12.2.0-devel-ubuntu22.04
+          command: ["/bin/bash", "-c", "--"]
+          args:
+            - |
+              apt update && apt install -y build-essential git && \
+              git clone https://github.com/wilicc/gpu-burn.git && \
+              cd gpu-burn && make && \
+              ./gpu burn -m 70% 120
+          resources:
+           limits:
+             nvidia.com/gpu.shared: 1
