@@ -4,12 +4,12 @@ Running deployments using [GPU Burn](https://github.com/wilicc/gpu-burn) on vari
 * NVIDIA's Multi-Process Service (MPS) was officially introduced in CUDA Toolkit version 5.5. But CUDA 11+ is ideal.
 - Pre-CUDA 4.0 Applications: Not supported under CUDA MPS. 
 - Pre-CUDA 11.5: Lack support for CUDA_MPS_PINNED_DEVICE_MEM_LIMIT, limiting fine-grained memory control.
-CUDA Version ≤ 9:
-- Legacy Ubuntu-based NVIDIA images (pre-2019):
-   - Lack MPS daemon binaries.
-   - Require manual /tmp/nvidia-mps handling and control script setup.
-- Images with outdated nvidia-smi:
-   - May crash when MPS tries to initialize or allocate.
+- CUDA Version ≤ 9:
+   - Legacy Ubuntu-based NVIDIA images (pre-2019):
+      - Lack MPS daemon binaries.
+      - Require manual /tmp/nvidia-mps handling and control script setup.
+   - Images with outdated nvidia-smi:
+      - May crash when MPS tries to initialize or allocate.
 
 ## Experiments
 1. Normal GPU Burn Run - 9 Replicas, 10GB Usage Each
