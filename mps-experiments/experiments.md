@@ -10,7 +10,9 @@ Running deployments using [GPU Burn](https://github.com/wilicc/gpu-burn) on vari
       - Require manual /tmp/nvidia-mps handling and control script setup.
    - Images with outdated nvidia-smi:
       - May crash when MPS tries to initialize or allocate.
-
+        
+* These experiments are run using CUDA version 12.2
+  
 ## Experiments
 1. Normal GPU Burn Run - 9 Replicas, 10GB Usage Each
 
