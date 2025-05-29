@@ -238,6 +238,11 @@ Couldn't init a GPU test: Error (gpu_burn-drv.cpp:112): initialization error
 +-----------------------------------------------------------------------------------------+
 ```
 
+6. Specify CUDA_MPS_ACTIVE_THREAD_PERCENTAGE
+   - This does not cap memory, only execution unit (SM) usage.
+   - This [comment](https://github.com/NVIDIA/nvidia-docker/issues/807#issuecomment-411634931) is helpful
+  
+     
 ## Summary
 
 - MPS limits are mostly respected when defined simply (e.g. 0=6GB).
