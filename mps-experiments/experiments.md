@@ -286,7 +286,7 @@ nvidia-smi dmon -s u
     1    100     24      0      0      0      0 
 ```
 7. Updating the mps config replica while workloads are running with a previous config
-Initial mps config:
+* Initial mps config:
 ```console
 version: v1
 sharing:
@@ -346,7 +346,7 @@ Requesting 9 workloads to run, each with 10GB of memory:
 +-----------------------------------------------------------------------------------------+
 
 ```
-Updated config (increased replica to 10):
+* Updated config (increased replica to 10):
 ```console
 version: v1
 sharing:
