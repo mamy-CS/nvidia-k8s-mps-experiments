@@ -285,6 +285,125 @@ nvidia-smi dmon -s u
     0    100     26      0      0      0      0 
     1    100     24      0      0      0      0 
 ```
+7. Updating the mps config replica while workloads are running with a previous config
+Initial mps config:
+```console
+version: v1
+sharing:
+  mps:
+    renameByDefault: true
+    resources:
+    - name: nvidia.com/gpu
+      replicas: 4
+    ...
+```
+
+```console
+Capacity:
+  nvidia.com/gpu:         0
+  nvidia.com/gpu.shared:  8
+Allocatable:
+  nvidia.com/gpu:         0
+  nvidia.com/gpu.shared:  8
+```
+Requesting 9 workloads to run, each with 10GB of memory:
+### Observation:
+- Only 8 pods deployed
+- ~10GB GPU memory usage per process
+
+```console
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:0E:00.0 Off |                    0 |
+| N/A   84C    P0            253W /  250W |   36386MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-PCIE-40GB          Off |   00000000:0F:00.0 Off |                    0 |
+| N/A   83C    P0            244W /  250W |   36386MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    948322      C   nvidia-cuda-mps-server                         30MiB |
+|    0   N/A  N/A    957485    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    957490    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    957501    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    957520    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    948322      C   nvidia-cuda-mps-server                         30MiB |
+|    1   N/A  N/A    958340    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    958347    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    958365    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    958394    M+C   ./gpu_burn                                   9086MiB |
++-----------------------------------------------------------------------------------------+
+
+```
+Updated config (increased replica to 10):
+```console
+version: v1
+sharing:
+  mps:
+    renameByDefault: true
+    resources:
+    - name: nvidia.com/gpu
+      replicas: 10
+    ...
+```
+
+```console
+Capacity:
+  nvidia.com/gpu:         0
+  nvidia.com/gpu.shared:  20
+Allocatable:
+  nvidia.com/gpu:         0
+  nvidia.com/gpu.shared:  20
+```
+### Observation:
+- 8 pods continue running with ~10GB memory
+- The remaining pod gets deplpoyed and allocated ~4GB memory
+```console
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:0E:00.0 Off |                    0 |
+| N/A   80C    P0            138W /  250W |   39792MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-PCIE-40GB          Off |   00000000:0F:00.0 Off |                    0 |
+| N/A   67C    P0             45W /  250W |   36393MiB /  40960MiB |      0%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    316555    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    316569    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    316593    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    316619    M+C   ./gpu_burn                                   9088MiB |
+|    0   N/A  N/A    321604    M+C   ./gpu_burn                                   3398MiB |
+|    0   N/A  N/A    321606      C   nvidia-cuda-mps-server                         30MiB |
+|    1   N/A  N/A    316565    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    316599    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    316611    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    316618    M+C   ./gpu_burn                                   9088MiB |
+|    1   N/A  N/A    321606      C   nvidia-cuda-mps-server                         30MiB |
++-----------------------------------------------------------------------------------------+
+```
 
 ## Summary
 
