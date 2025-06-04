@@ -524,6 +524,107 @@ env:
 - Memory limit respected for GPU 0, 8GB per workload, 4 deployed on GPU 0
 - but memory limit not respected for gpu 1, 2 pods deployed 1 with ~37GB and one with ~4GB
 - No change in sm usage seen on both GPUs
+
+  10. Crashing one pod
+
+* Initially 8 pods running in 2 gpus
+  ```console
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:0E:00.0 Off |                    0 |
+| N/A   84C    P0            253W /  250W |   36386MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-PCIE-40GB          Off |   00000000:0F:00.0 Off |                    0 |
+| N/A   83C    P0            244W /  250W |   36386MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    948322      C   nvidia-cuda-mps-server                         30MiB |
+|    0   N/A  N/A    957485    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    957490    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    957501    M+C   ./gpu_burn                                   9086MiB |
+|    0   N/A  N/A    957520    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    948322      C   nvidia-cuda-mps-server                         30MiB |
+|    1   N/A  N/A    958340    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    958347    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    958365    M+C   ./gpu_burn                                   9086MiB |
+|    1   N/A  N/A    958394    M+C   ./gpu_burn                                   9086MiB |
++-----------------------------------------------------------------------------------------+
+  ```
+
+* Crash one of the pods
+```console
+kubectl exec mps-deployment-gpuburn-857769f4c6-f2n9j -- pkill -SIGSEGV gpu_burn
+kubectl get pods --watch
+NAME                                      READY   STATUS             RESTARTS      AGE
+mps-deployment-gpuburn-857769f4c6-4fw7b   1/1     Running            1 (11m ago)   11m
+mps-deployment-gpuburn-857769f4c6-54zxw   1/1     Running            1 (11m ago)   11m
+mps-deployment-gpuburn-857769f4c6-8mjkn   1/1     Running            1 (11m ago)   11m
+mps-deployment-gpuburn-857769f4c6-bzg7r   0/1     Pending            0             11m
+mps-deployment-gpuburn-857769f4c6-f2n9j   1/1     Running            1 (11m ago)   11m
+mps-deployment-gpuburn-857769f4c6-hstj5   1/1     Running            0             11m
+mps-deployment-gpuburn-857769f4c6-rx55x   0/1     CrashLoopBackOff   7 (44s ago)   11m
+mps-deployment-gpuburn-857769f4c6-vqml9   1/1     Running            1 (11m ago)   11m
+mps-deployment-gpuburn-857769f4c6-x2hvt   0/1     CrashLoopBackOff   7 (25s ago)   11m
+mps-deployment-gpuburn-857769f4c6-8mjkn   0/1     Error              1 (12m ago)   12m
+mps-deployment-gpuburn-857769f4c6-54zxw   0/1     Error              1 (12m ago)   12m
+mps-deployment-gpuburn-857769f4c6-vqml9   0/1     Error              1 (12m ago)   12m
+mps-deployment-gpuburn-857769f4c6-hstj5   0/1     Error              0             12m
+mps-deployment-gpuburn-857769f4c6-f2n9j   0/1     Error              1 (12m ago)   12m
+mps-deployment-gpuburn-857769f4c6-4fw7b   0/1     Error              1 (12m ago)   12m
+mps-deployment-gpuburn-857769f4c6-hstj5   0/1     Error              1 (10s ago)   12m
+mps-deployment-gpuburn-857769f4c6-54zxw   0/1     Error              2 (10s ago)   12m
+mps-deployment-gpuburn-857769f4c6-vqml9   0/1     Error              2 (9s ago)    12m
+mps-deployment-gpuburn-857769f4c6-f2n9j   0/1     Error              2 (9s ago)    12m
+mps-deployment-gpuburn-857769f4c6-8mjkn   0/1     Error              2 (10s ago)   12m
+mps-deployment-gpuburn-857769f4c6-4fw7b   0/1     Error              2 (10s ago)   12m
+mps-deployment-gpuburn-857769f4c6-8mjkn   0/1     CrashLoopBackOff   2 (12s ago)   12m
+mps-deployment-gpuburn-857769f4c6-hstj5   0/1     CrashLoopBackOff   1 (13s ago)   12m
+mps-deployment-gpuburn-857769f4c6-vqml9   0/1     CrashLoopBackOff   2 (16s ago)   12m
+mps-deployment-gpuburn-857769f4c6-4fw7b   0/1     CrashLoopBackOff   2 (14s ago)   12m
+mps-deployment-gpuburn-857769f4c6-54zxw   0/1     CrashLoopBackOff   2 (15s ago)   12m
+mps-deployment-gpuburn-857769f4c6-f2n9j   0/1     CrashLoopBackOff   2 (17s ago)   12m
+```
+  ```console
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:0E:00.0 Off |                    0 |
+| N/A   75C    P0             53W /  250W |       4MiB /  40960MiB |      0%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-PCIE-40GB          Off |   00000000:0F:00.0 Off |                    0 |
+| N/A   77C    P0             47W /  250W |       4MiB /  40960MiB |      0%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+  ```
+
+### Observation:
+- All pods crash as well
+- MPS is not isolated — shared GPU context lost
   
 ## Summary
 
