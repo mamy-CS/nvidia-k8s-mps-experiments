@@ -117,6 +117,8 @@ nvidia-smi
 ```
 
 3. CUDA_MPS_PINNED_DEVICE_MEM_LIMIT='0=6GB' (17 Replicas)
+* Note: CUDA_MPS_PINNED_DEVICE_MEM_LIMIT is only valid starting in version CUDA 11.5. Images built with earlier CUDA versions don't support the CUDA_MPS_PINNED_DEVICE_MEM_LIMIT variable.
+  
 ### Observation:
 - 8 pods deployed
 - Memory limit respected, 6GB per workload but applied on both GPUs instead of just gpu 0
@@ -405,6 +407,77 @@ Allocatable:
 +-----------------------------------------------------------------------------------------+
 ```
 
+8. Setting active thread percentage and mps pinned device mem limit using env variables together
+### ENV
+```console
+env:
+   - name: CUDA_MPS_ACTIVE_THREAD_PERCENTAGE
+      value: "20"
+   - name: CUDA_MPS_PINNED_DEVICE_MEM_LIMIT
+      value: "0=8000M"
+```
+
+```console
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:0E:00.0 Off |                    0 |
+| N/A   72C    P0            248W /  250W |   28114MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-PCIE-40GB          Off |   00000000:0F:00.0 Off |                    0 |
+| N/A   78C    P0            246W /  250W |   28114MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    281328      C   nvidia-cuda-mps-server                         30MiB |
+|    0   N/A  N/A    281524    M+C   ./gpu_burn                                   7018MiB |
+|    0   N/A  N/A    281675    M+C   ./gpu_burn                                   7018MiB |
+|    0   N/A  N/A    282212    M+C   ./gpu_burn                                   7018MiB |
+|    0   N/A  N/A    282387    M+C   ./gpu_burn                                   7018MiB |
+|    1   N/A  N/A    281326    M+C   ./gpu_burn                                   7018MiB |
+|    1   N/A  N/A    281328      C   nvidia-cuda-mps-server                         30MiB |
+|    1   N/A  N/A    281848    M+C   ./gpu_burn                                   7018MiB |
+|    1   N/A  N/A    282039    M+C   ./gpu_burn                                   7018MiB |
+|    1   N/A  N/A    282565    M+C   ./gpu_burn                                   7018MiB |
++-----------------------------------------------------------------------------------------+
+```
+
+```console
+nvidia-smi dmon -s u
+# gpu     sm    mem    enc    dec    jpg    ofa 
+# Idx      %      %      %      %      %      % 
+    0    100     18      0      0      0      0 
+    1    100     23      0      0      0      0 
+    0    100     17      0      0      0      0 
+    1    100     15      0      0      0      0 
+    0    100     16      0      0      0      0 
+    1    100     15      0      0      0      0 
+    0    100     19      0      0      0      0 
+    1    100     17      0      0      0      0 
+    0    100     16      0      0      0      0 
+    1    100     15      0      0      0      0 
+    0    100     16      0      0      0      0 
+    1    100     18      0      0      0      0 
+    0    100     20      0      0      0      0 
+    1    100     15      0      0      0      0 
+    0    100     17      0      0      0      0 
+```
+
+### Observation:
+- 8 pods deployed
+- Memory limit respected, 8GB per workload, but applied on both GPUs instead of just gpu 0
+- No change in sm usage seen on both GPUs
+  
 ## Summary
 
 - MPS limits are mostly respected when defined simply (e.g. 0=6GB).
