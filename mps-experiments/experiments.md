@@ -122,7 +122,13 @@ nvidia-smi
 ### Observation:
 - 8 pods deployed
 - Memory limit respected, 6GB per workload but applied on both GPUs instead of just gpu 0
-  
+
+* Both GPUs are seen as GPU 0
+```console
+mps-deployment-gpuburn-857769f4c6-54zxw gpu-burn GPU 0: NVIDIA A100-PCIE-40GB (UUID: GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24)
+mps-deployment-gpuburn-857769f4c6-vqml9 gpu-burn GPU 0: NVIDIA A100-PCIE-40GB (UUID: GPU-8d042338-e67f-9c48-92b4-5b55c7e5133c)
+```
+
 ```console
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
