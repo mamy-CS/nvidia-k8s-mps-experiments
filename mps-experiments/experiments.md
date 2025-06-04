@@ -128,7 +128,9 @@ nvidia-smi
 mps-deployment-gpuburn-857769f4c6-54zxw gpu-burn GPU 0: NVIDIA A100-PCIE-40GB (UUID: GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24)
 mps-deployment-gpuburn-857769f4c6-vqml9 gpu-burn GPU 0: NVIDIA A100-PCIE-40GB (UUID: GPU-8d042338-e67f-9c48-92b4-5b55c7e5133c)
 ```
-
+* Even if we have multiple physical GPUs, each pod only sees 1 GPU — and it is always labeled as GPU 0 within the container
+* GPU 0 is the index inside the container's namespace (set via CUDA_VISIBLE_DEVICES)
+  
 ```console
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
