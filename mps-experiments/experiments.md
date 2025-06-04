@@ -633,3 +633,4 @@ mps-deployment-gpuburn-857769f4c6-f2n9j   0/1     CrashLoopBackOff   2 (17s ago)
 - Complex syntax with UUIDs seems unreliable.
 - Workload rejection/errors occur when attempting to overcommit memory.
 - CUDA_VISIBLE_DEVICES helps to bind workloads, but may require careful tuning.
+- NVIDIA MPS requires that you set hostIPC:true on Pods. The hostIPC:true configuration allows a container to access the host resource, which introduces security risks.
