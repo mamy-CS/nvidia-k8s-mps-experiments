@@ -287,7 +287,7 @@ nvidia-smi dmon -s u
     0    100     26      0      0      0      0 
     1    100     24      0      0      0      0 
 ```
-7. Updating the mps config replica while workloads are running with a previous config
+7. Updating the mps config replica while workloads are running with a previous config (9 replicas)
 * Initial mps config:
 ```console
 version: v1
@@ -407,7 +407,7 @@ Allocatable:
 +-----------------------------------------------------------------------------------------+
 ```
 
-8. Setting active thread percentage and mps pinned device mem limit using env variables together
+8. Setting active thread percentage and mps pinned device mem limit using env variables together (9 replicas)
 ### ENV
 ```console
 env:
@@ -472,10 +472,57 @@ nvidia-smi dmon -s u
     1    100     15      0      0      0      0 
     0    100     17      0      0      0      0 
 ```
-
 ### Observation:
 - 8 pods deployed
 - Memory limit respected, 8GB per workload, but applied on both GPUs instead of just gpu 0
+- No change in sm usage seen on both GPUs
+  
+9. Setting mps pinned device mem limit using gpu id (9 replicas)
+### ENV
+```console
+env:
+   - name: CUDA_MPS_ACTIVE_THREAD_PERCENTAGE
+      value: "20"
+   - name: CUDA_MPS_PINNED_DEVICE_MEM_LIMIT
+      value: "GPU-31cfe05c-ed13-cd17-d7aa-c63db5108c24=8000M"
+```
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:0E:00.0 Off |                    0 |
+| N/A   84C    P0            139W /  250W |   28114MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-PCIE-40GB          Off |   00000000:0F:00.0 Off |                    0 |
+| N/A   84C    P0            111W /  250W |   39677MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A    281328      C   nvidia-cuda-mps-server                         30MiB |
+|    0   N/A  N/A    292742    M+C   ./gpu_burn                                   7018MiB |
+|    0   N/A  N/A    292931    M+C   ./gpu_burn                                   7018MiB |
+|    0   N/A  N/A    292932    M+C   ./gpu_burn                                   7018MiB |
+|    0   N/A  N/A    292943    M+C   ./gpu_burn                                   7018MiB |
+|    1   N/A  N/A    281328      C   nvidia-cuda-mps-server                         30MiB |
+|    1   N/A  N/A    291768    M+C   ./gpu_burn                                  36202MiB |
+|    1   N/A  N/A    292745    M+C   ./gpu_burn                                   3434MiB |
++-----------------------------------------------------------------------------------------+
+```console
+
+```
+### Observation:
+- 6 pods deployed
+- Memory limit respected for GPU 0, 8GB per workload, 4 deployed on GPU 0
+- but memory limit not respected for gpu 1, 2 pods deployed 1 with ~37GB and one with ~4GB
 - No change in sm usage seen on both GPUs
   
 ## Summary
