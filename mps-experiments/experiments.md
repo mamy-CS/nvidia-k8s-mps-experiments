@@ -525,10 +525,10 @@ env:
 - but memory limit not respected for gpu 1, 2 pods deployed 1 with ~37GB and one with ~4GB
 - No change in sm usage seen on both GPUs
 
-  10. Crashing one pod
+10. Crashing one pod
 
 * Initially 8 pods running in 2 gpus
-  ```console
+```console
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
 |-----------------------------------------+------------------------+----------------------+
@@ -561,9 +561,10 @@ env:
 |    1   N/A  N/A    958365    M+C   ./gpu_burn                                   9086MiB |
 |    1   N/A  N/A    958394    M+C   ./gpu_burn                                   9086MiB |
 +-----------------------------------------------------------------------------------------+
-  ```
+```
 
 * Crash one of the pods
+
 ```console
 kubectl exec mps-deployment-gpuburn-857769f4c6-f2n9j -- pkill -SIGSEGV gpu_burn
 kubectl get pods --watch
@@ -596,7 +597,7 @@ mps-deployment-gpuburn-857769f4c6-4fw7b   0/1     CrashLoopBackOff   2 (14s ago)
 mps-deployment-gpuburn-857769f4c6-54zxw   0/1     CrashLoopBackOff   2 (15s ago)   12m
 mps-deployment-gpuburn-857769f4c6-f2n9j   0/1     CrashLoopBackOff   2 (17s ago)   12m
 ```
-  ```console
+```console
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
 |-----------------------------------------+------------------------+----------------------+
@@ -620,7 +621,7 @@ mps-deployment-gpuburn-857769f4c6-f2n9j   0/1     CrashLoopBackOff   2 (17s ago)
 |=========================================================================================|
 |  No running processes found                                                             |
 +-----------------------------------------------------------------------------------------+
-  ```
+```
 
 ### Observation:
 - All pods crash as well
