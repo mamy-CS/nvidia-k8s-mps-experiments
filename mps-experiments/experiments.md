@@ -378,7 +378,7 @@ Allocatable:
 ```
 ### Observation:
 - 8 pods continue running with ~10GB memory
-- The remaining pod gets deplpoyed and allocated ~4GB memory
+- The remaining pod gets deployed and allocated ~4GB of memory
 ```console
 +-----------------------------------------------------------------------------------------+
 | NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
