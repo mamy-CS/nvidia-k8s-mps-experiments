@@ -634,6 +634,59 @@ mps-deployment-gpuburn-857769f4c6-f2n9j   0/1     CrashLoopBackOff   2 (17s ago)
 ### Observation:
 - All pods crash as well
 - MPS is not isolated — shared GPU context lost
+
+11. Setting mps pinned device mem limit to a higher value than whats allowed by the mps config (9 replicas)
+### MPS config
+```console
+resources:
+   - name: nvidia.com/gpu
+     replicas: 10
+```
+- Total memory on GPu = 40GB, 4GB capped per workload
+### ENV
+```console
+env:
+   - name: CUDA_MPS_PINNED_DEVICE_MEM_LIMIT
+      value: "0=8000M"
+```
+- Setting device mem limit to 8GB
+  
+```console
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 550.127.08             Driver Version: 550.127.08     CUDA Version: 12.4     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-PCIE-40GB          Off |   00000000:0E:00.0 Off |                    0 |
+| N/A   84C    P0            155W /  250W |   18313MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+|   1  NVIDIA A100-PCIE-40GB          Off |   00000000:0F:00.0 Off |                    0 |
+| N/A   84C    P0            134W /  250W |   39861MiB /  40960MiB |    100%   E. Process |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI        PID   Type   Process name                              GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|    0   N/A  N/A   1402100      C   nvidia-cuda-mps-server                         30MiB |
+|    0   N/A  N/A   1402501    M+C   ./gpu_burn                                   3654MiB |
+|    0   N/A  N/A   1402719    M+C   ./gpu_burn                                   3654MiB |
+|    0   N/A  N/A   1403370    M+C   ./gpu_burn                                   3654MiB |
+|    0   N/A  N/A   1403587    M+C   ./gpu_burn                                   3654MiB |
+|    0   N/A  N/A   1403952    M+C   ./gpu_burn                                   3654MiB |
+|    1   N/A  N/A   1402098    M+C   ./gpu_burn                                  36166MiB |
+|    1   N/A  N/A   1402100      C   nvidia-cuda-mps-server                         30MiB |
+|    1   N/A  N/A   1402297    M+C   ./gpu_burn                                   3654MiB |
++-----------------------------------------------------------------------------------------+
+```
+### Observation:
+- 7 pods deployed
+- Memory limit respected, 4GB per workload
   
 ## Summary
 
